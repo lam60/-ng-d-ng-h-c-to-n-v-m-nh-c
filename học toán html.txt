@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng học toán</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* rounded-3xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 500px; /* Adjust as needed for content and footer */
+        }
+        .screen {
+            display: none;
+            flex-grow: 1; /* Allow screens to take available space */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .screen.active {
+            display: flex;
+        }
+        .subject-button { /* New class for subject selection buttons */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #6366f1; /* indigo-500 */
+            color: white;
+            padding: 1rem;
+            border-radius: 1rem; /* rounded-xl */
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%; /* Make them fill width */
+            height: 80px; /* Fixed height */
+            flex-shrink: 0;
+            margin-bottom: 1rem; /* Space between buttons */
+        }
+        .subject-button:hover {
+            background-color: #4f46e5; /* indigo-600 */
+        }
+        .subject-button i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .math-button { /* Existing math buttons, now within a subject screen */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #6366f1; /* indigo-500 */
+            color: white;
+            padding: 1.5rem;
+            border-radius: 9999px; /* rounded-full */
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100px; /* Fixed width for circular shape */
+            height: 100px; /* Fixed height for circular shape */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .math-button:hover {
+            background-color: #4f46e5; /* indigo-600 */
+        }
+        .math-button i {
+            font-size: 3rem;
+            /* Removed margin-bottom: 0.5rem; to center the icon better */
+        }
+        .action-button {
+            background-color: #22c55e; /* green-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem; /* rounded-lg */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .action-button:hover {
+            background-color: #16a34a; /* green-600 */
+        }
+        .input-button {
+            background-color: #e0e7ff; /* indigo-100 */
+            color: #4f46e5; /* indigo-600 */
+            padding: 1rem;
+            border-radius: 0.75rem; /* rounded-lg */
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .input-button:hover {
+            background-color: #c7d2fe; /* indigo-200 */
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 1rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background-color: #f8fafc; /* gray-50 */
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .leaderboard-item.player {
+            background-color: #e0f2fe; /* blue-100 */
+            font-weight: bold;
+        }
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0; /* gray-200 */
+            margin-top: auto; /* Push to bottom */
+        }
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .bottom-nav-item i {
+            font-size: 1.8rem; /* Slightly smaller icons for nav */
+            margin-bottom: 0.25rem;
+            color: #4b5563; /* gray-700 */
+        }
+        .bottom-nav-item span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4b5563; /* gray-700 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main Screen (Subject Selection) -->
+        <div id="mainScreen" class="screen active">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">Chọn Môn Học</h1>
+
+            <button class="subject-button" onclick="showSubjectScreen('math')">
+                <i class="fas fa-calculator"></i>
+                <span>Toán học</span>
+            </button>
+            <button class="subject-button" onclick="showSubjectScreen('music')">
+                <i class="fas fa-music"></i>
+                <span>Âm nhạc</span>
+            </button>
+            <button class="subject-button" onclick="showSubjectScreen('english')">
+                <i class="fas fa-language"></i>
+                <span>Tiếng Anh</span>
+            </button>
+
+            <button id="startTournamentButton" class="action-button w-full mt-4 bg-red-500 hover:bg-red-600" onclick="startTournament()">Bắt đầu Giải Đấu (15 phút)</button>
+            <p id="tournamentTimer" class="text-xl font-bold text-red-600 mt-2 hidden"></p>
+            <button class="action-button w-full mt-4 bg-purple-500 hover:bg-purple-600" onclick="startReview()">Ôn Tập</button>
+
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="bottom-nav-item" onclick="showScreen('shopScreen')">
+                    <i class="fas fa-store"></i>
+                    <span>Cửa hàng</span>
+                </div>
+                <div class="bottom-nav-item">
+                    <i class="fas fa-battery-full" id="batteryIcon"></i>
+                    <span id="batteryStatus">Pin: 5/5</span>
+                </div>
+                <div class="bottom-nav-item" onclick="showScreen('leaderboardScreen')">
+                    <i class="fas fa-trophy"></i>
+                    <span>Xếp Hạng</span>
+                </div>
+                <div class="bottom-nav-item" onclick="showScreen('profileScreen')">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Hồ sơ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Math Subject Screen -->
+        <div id="mathSubjectScreen" class="screen">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">Toán học</h1>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="math-button" onclick="showLesson('math', 'addition')">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('math', 'subtraction')">
+                    <i class="fas fa-minus"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('math', 'multiplication')">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('math', 'division')">
+                    <i class="fas fa-divide"></i>
+                </div>
+            </div>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại chọn môn</button>
+        </div>
+
+        <!-- Music Subject Screen -->
+        <div id="musicSubjectScreen" class="screen">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">Âm nhạc</h1>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="math-button" onclick="showLesson('music', 'notes')">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('music', 'instruments')">
+                    <i class="fas fa-guitar"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('music', 'rhythm')">
+                    <i class="fas fa-drum"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('music', 'genres')">
+                    <i class="fas fa-headphones"></i>
+                </div>
+            </div>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại chọn môn</button>
+        </div>
+
+        <!-- English Subject Screen -->
+        <div id="englishSubjectScreen" class="screen">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">Tiếng Anh</h1>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="math-button" onclick="showLesson('english', 'vocabulary')">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('english', 'greetings')">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('english', 'sentences')">
+                    <i class="fas fa-comment-alt"></i>
+                </div>
+                <div class="math-button" onclick="showLesson('english', 'animals')">
+                    <i class="fas fa-paw"></i>
+                </div>
+            </div>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại chọn môn</button>
+        </div>
+
+        <!-- Lesson Screen (Renamed from Math Lesson Screen) -->
+        <div id="lessonScreen" class="screen">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4" id="lessonTitle"></h2>
+            <p class="text-lg text-gray-700 mb-6 whitespace-pre-line" id="lessonContent"></p>
+            
+            <div id="questionContainer" class="mb-4 hidden">
+                <p class="text-xl font-semibold text-gray-800 mb-2" id="questionText"></p>
+                <input type="text" id="answerInput" class="border-2 border-gray-300 p-3 rounded-lg text-center text-xl font-bold w-full" placeholder="Nhập câu trả lời của bạn">
+                <button id="checkAnswerButton" class="action-button w-full mt-4 bg-blue-500 hover:bg-blue-600" onclick="checkAnswer()">Kiểm tra</button>
+                <p id="feedbackText" class="text-lg mt-2 font-semibold"></p>
+            </div>
+
+            <div id="multipleChoiceContainer" class="mb-4 hidden">
+                <p class="text-xl font-semibold text-gray-800 mb-2" id="mcQuestionText"></p>
+                <div id="mcOptionsContainer" class="grid grid-cols-1 gap-3">
+                    <!-- Options will be dynamically inserted here -->
+                </div>
+                <p id="mcFeedbackText" class="text-lg mt-2 font-semibold"></p>
+            </div>
+
+            <button id="nextLessonPartButton" class="action-button w-full hidden" onclick="nextLessonPart()">Tiếp theo</button>
+            <button id="completeLessonButton" class="action-button w-full mt-4 bg-purple-500 hover:bg-purple-600 hidden" onclick="completeLesson()">Hoàn thành bài học</button>
+        </div>
+
+        <!-- Shop Screen -->
+        <div id="shopScreen" class="screen">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Cửa hàng</h2>
+            <p class="text-lg text-gray-700 mb-6">Chào mừng đến với cửa hàng! Tại đây bạn có thể mua các vật phẩm.</p>
+            <button class="action-button w-full mt-4" onclick="showScreen('codeEntryScreen', 'buy10VND')">Mua với giá 10 VND</button>
+            <button class="action-button w-full mt-4 bg-yellow-500 hover:bg-yellow-600" onclick="showScreen('codeEntryScreen', 'buyGems')">Mua 500 đá quý với giá 2 VND</button>
+            <button class="action-button w-full mt-4 bg-blue-500 hover:bg-blue-600" onclick="rechargeBattery()">Sạc đầy pin (10 đá quý)</button>
+            <button id="buyDoubleGemsButton" class="action-button w-full mt-4 bg-green-500 hover:bg-green-600" onclick="buyDoubleGems()">Mua x2 Đá quý (10 đá quý)</button>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại</button>
+        </div>
+
+        <!-- Code Entry Screen -->
+        <div id="codeEntryScreen" class="screen">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Nhập mã</h2>
+            <div class="flex justify-center items-center mb-6">
+                <input type="text" id="codeInput" class="border-2 border-gray-300 p-3 rounded-lg text-center text-2xl font-bold w-3/4" readonly>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <button class="input-button" onclick="appendCode('1')">1</button>
+                <button class="input-button" onclick="appendCode('2')">2</button>
+                <button class="input-button" onclick="appendCode('3')">3</button>
+                <button class="input-button" onclick="appendCode('4')">4</button>
+                <button class="input-button" onclick="appendCode('5')">5</button>
+                <button class="input-button" onclick="appendCode('6')">6</button>
+                <button class="input-button" onclick="appendCode('7')">7</button>
+                <button class="input-button" onclick="appendCode('8')">8</button>
+                <button class="input-button" onclick="appendCode('9')">9</button>
+                <button class="input-button col-span-2" onclick="appendCode('0')">0</button>
+                <button class="input-button bg-red-500 text-white hover:bg-red-600" onclick="clearCode()">Xóa</button>
+            </div>
+            <button class="action-button w-full" onclick="submitCode()">Xác nhận</button>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại</button>
+        </div>
+
+        <!-- Plus Trial Screen -->
+        <div id="plusTrialScreen" class="screen">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Dùng thử Plus 1 ngày</h2>
+            <p class="text-lg text-gray-700 mb-6">Bạn đang dùng thử gói Plus trong 1 ngày. Tận hưởng các tính năng cao cấp!</p>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại</button>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboardScreen" class="screen">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Bảng Xếp Hạng</h2>
+            <ul id="leaderboardList" class="list-none p-0 mb-6">
+                <!-- Leaderboard items will be dynamically inserted here -->
+            </ul>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại</button>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profileScreen" class="screen">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Hồ sơ của bạn</h2>
+            <div class="text-left text-lg text-gray-700 mb-4">
+                <p><strong>Tên:</strong> <span id="profileUserName">Người chơi</span></p>
+                <p><strong>Đá quý:</strong> <span id="profileGemCount">0</span></p>
+                <p><strong>Thành viên Plus:</strong> <span id="profilePlusStatus">Không</span></p>
+                <p><strong>X2 Đá quý:</strong> <span id="profileDoubleGemStatus">Không</span></p>
+            </div>
+            <button class="action-button w-full mt-4 bg-gray-500 hover:bg-gray-600" onclick="showScreen('mainScreen')">Quay lại</button>
+        </div>
+
+        <!-- Tournament Results Modal -->
+        <div id="tournamentResultsModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeTournamentResultsModal()">&times;</span>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Kết quả Giải Đấu</h3>
+                <ul id="tournamentResultsList" class="list-none p-0 mb-6">
+                    <!-- Tournament results will be dynamically inserted here -->
+                </ul>
+                <p id="tournamentRewardPenaltyText" class="text-lg font-semibold"></p>
+                <button class="action-button mt-4 px-6 py-2" onclick="closeTournamentResultsModal()">OK</button>
+            </div>
+        </div>
+
+        <!-- Name Input Modal -->
+        <div id="nameInputModal" class="modal">
+            <div class="modal-content">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Chào mừng bạn đến với Học Toán!</h3>
+                <p class="text-lg text-gray-700 mb-4">Vui lòng nhập tên của bạn:</p>
+                <input type="text" id="userNameInput" class="border-2 border-gray-300 p-3 rounded-lg text-center text-xl font-bold w-full mb-4" placeholder="Tên của bạn">
+                <button class="action-button mt-4 px-6 py-2" onclick="saveUserName()">Bắt đầu</button>
+            </div>
+        </div>
+
+        <!-- Gem Display -->
+        <div class="absolute top-4 right-4 flex items-center bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full shadow-md">
+            <i class="fas fa-gem text-xl mr-2"></i>
+            <span id="gemCount" class="text-xl font-bold">0</span>
+        </div>
+
+        <!-- Custom Alert Modal -->
+        <div id="customAlertModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal()">&times;</span>
+                <p id="modalMessage" class="text-lg font-semibold text-gray-800"></p>
+                <button class="action-button mt-4 px-6 py-2" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentScreen = 'mainScreen';
+        let price = 500;
+        let gems = 0;
+        let purchaseType = ''; // purchaseType can be 'recharge', 'buy10VND', 'buyGems'
+        let isPlusMember = false; // New state variable for Plus membership
+        let isDoubleGemActive = false; // New state variable for x2 gems
+        let userName = "Người chơi"; // Default user name
+        let currentSubject = 'math'; // New: Tracks the currently selected subject
+
+        let currentOperation = '';
+        let currentLessonPartIndex = 0;
+        let isAnswerCorrect = false; // Flag to check if the current question is answered correctly
+        let isReviewMode = false; // New flag for review mode
+
+        const MAX_BATTERY = 5; // Max battery level
+        const DAILY_LESSONS_FOR_FULL_BATTERY_NEXT_DAY = 1; // Only 1 lesson needed for full battery next day
+        const GEM_PENALTY_FOR_EMPTY_BATTERY = 100;
+        const RECHARGE_BATTERY_COST = 10;
+        const GEMS_PER_LESSON_NORMAL = 5;
+        const GEMS_PER_LESSON_PLUS = 20;
+        const TOP_1_REWARD_GEMS = 500; // New constant for Top 1 reward
+        const TOURNAMENT_DURATION_MS = 15 * 60 * 1000; // 15 minutes in milliseconds
+        const TOURNAMENT_NON_WINNER_PENALTY = 50; // Penalty for not winning the tournament
+        const DOUBLE_GEM_COST = 10; // Cost for x2 gems
+
+        let lessonsCompletedToday = 0; // Tracks lessons completed today for battery reset logic
+        let lastLoginDate = ''; // Format: YYYY-MM-DD
+        let batteryLevel = MAX_BATTERY; // Initial battery level
+
+        let tournamentState = {
+            isActive: false,
+            startTime: 0,
+            endTime: 0,
+            userScore: 0,
+            virtualPlayersScores: [] // [{ name: "...", score: ... }]
+        };
+        let tournamentTimerInterval;
+
+        // Virtual players data for leaderboard and tournament
+        const virtualPlayers = [
+            { name: "Học Sinh A", baseScore: 1200, tournamentRate: 1.5 }, // Stronger
+            { name: "Học Sinh B", baseScore: 950, tournamentRate: 1.2 },
+            { name: "Học Sinh C", baseScore: 700, tournamentRate: 1.0 },
+            { name: "Học Sinh D", baseScore: 500, tournamentRate: 0.8 },
+            { name: "Học Sinh E", baseScore: 300, tournamentRate: 0.6 } // Weaker
+        ];
+
+        // Data for math lessons, structured into parts with generateQuestion functions
+        const mathLessonsData = {
+            addition: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Cộng: Phần 1 - Cộng các số nhỏ (trong phạm vi 5)",
+                    content: "Phép cộng là quá trình gộp các số lại với nhau. Hãy bắt đầu với những phép tính đơn giản nhất.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 3) + 1; // 1-3
+                        const num2 = Math.floor(Math.random() * (5 - num1)) + 1; // ensure sum <= 5
+                        return {
+                            question: `Tính: $${num1} + ${num2} = ?$`,
+                            answer: (num1 + num2).toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Cộng: Phần 2 - Cộng với số 0 và 1",
+                    content: "Khi cộng một số với 0, kết quả là chính số đó. Khi cộng một số với 1, kết quả là số liền sau số đó.",
+                    generateQuestion: () => {
+                        const type = Math.random() < 0.5 ? 'zero' : 'one';
+                        let num = Math.floor(Math.random() * 9) + 1; // 1-9
+                        let question, answer, options;
+                        if (type === 'zero') {
+                            question = `Kết quả của $${num} + 0$ là bao nhiêu?`;
+                            answer = num.toString();
+                            options = [num.toString(), (num + 1).toString(), (num - 1).toString(), "0"].sort(() => Math.random() - 0.5);
+                        } else {
+                            question = `Kết quả của $${num} + 1$ là bao nhiêu?`;
+                            answer = (num + 1).toString();
+                            options = [num.toString(), (num + 1).toString(), (num + 2).toString(), (num - 1).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        }
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Cộng: Phần 3 - Cộng trong phạm vi 10",
+                    content: "Hãy thử sức với các phép cộng có tổng không quá 10.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 8) + 1; // 1-8
+                        const num2 = Math.floor(Math.random() * (10 - num1)) + 1; // ensure sum <= 10
+                        return {
+                            question: `Tính: $${num1} + ${num2} = ?$`,
+                            answer: (num1 + num2).toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Cộng: Phần 4 - Bài toán có lời văn",
+                    content: "Giải bài toán sau.",
+                    generateQuestion: () => {
+                        const item = ["quả táo", "cái kẹo", "bông hoa", "cái bút"][Math.floor(Math.random() * 4)];
+                        const num1 = Math.floor(Math.random() * 5) + 1; // 1-5
+                        const num2 = Math.floor(Math.random() * 5) + 1; // 1-5
+                        const question = `Lan có ${num1} ${item}, mẹ cho thêm ${num2} ${item}. Hỏi Lan có tất cả bao nhiêu ${item}?`;
+                        const answer = (num1 + num2).toString();
+                        const options = [answer, (num1 + num2 + 1).toString(), (num1 + num2 - 1).toString(), (num1 + num2 + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Cộng: Phần 5 - Cộng ba số nhỏ",
+                    content: "Hãy cộng ba số lại với nhau.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 3) + 1;
+                        const num2 = Math.floor(Math.random() * 3) + 1;
+                        const num3 = Math.floor(Math.random() * 3) + 1;
+                        const answer = (num1 + num2 + num3).toString();
+                        const question = `Tính: $${num1} + ${num2} + ${num3} = ?$`;
+                        const options = [answer, (parseInt(answer) + 1).toString(), (parseInt(answer) - 1).toString(), (parseInt(answer) + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                }
+            ],
+            subtraction: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Trừ: Phần 1 - Trừ các số nhỏ (trong phạm vi 5)",
+                    content: "Phép trừ là phép toán tìm phần còn lại. Chúng ta sẽ bắt đầu với những phép trừ cơ bản.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 4) + 2; // 2-5
+                        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1 to num1-1
+                        return {
+                            question: `Tính: $${num1} - ${num2} = ?$`,
+                            answer: (num1 - num2).toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Trừ: Phần 2 - Trừ với số 0 và trừ chính nó",
+                    content: "Khi trừ một số cho 0, kết quả vẫn là chính số đó. Khi trừ một số cho chính nó, kết quả luôn là 0.",
+                    generateQuestion: () => {
+                        const type = Math.random() < 0.5 ? 'zero' : 'self';
+                        let num = Math.floor(Math.random() * 9) + 1; // 1-9
+                        let question, answer, options;
+                        if (type === 'zero') {
+                            question = `Kết quả của $${num} - 0$ là bao nhiêu?`;
+                            answer = num.toString();
+                            options = [num.toString(), (num - 1).toString(), (num + 1).toString(), "0"].sort(() => Math.random() - 0.5);
+                        } else {
+                            question = `Kết quả của $${num} - ${num}$ là bao nhiêu?`;
+                            answer = "0";
+                            options = ["0", "1", num.toString(), (num + 1).toString()].sort(() => Math.random() - 0.5);
+                        }
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Trừ: Phần 3 - Trừ trong phạm vi 10",
+                    content: "Hãy thử sức với các phép trừ trong phạm vi 10.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 5) + 6; // 6-10
+                        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1 to num1-1
+                        return {
+                            question: `Tính: $${num1} - ${num2} = ?$`,
+                            answer: (num1 - num2).toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Trừ: Phần 4 - Bài toán có lời văn",
+                    content: "Giải bài toán sau.",
+                    generateQuestion: () => {
+                        const item = ["quả bóng", "quyển sách", "cái bút chì", "cái bánh"][Math.floor(Math.random() * 4)];
+                        const num1 = Math.floor(Math.random() * 5) + 6; // 6-10
+                        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1 to num1-1
+                        const question = `Bạn có ${num1} ${item}, bạn cho đi ${num2} ${item}. Hỏi bạn còn lại bao nhiêu ${item}?`;
+                        const answer = (num1 - num2).toString();
+                        const options = [answer, (num1 - num2 + 1).toString(), (num1 - num2 - 1).toString(), (num1 - num2 + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Trừ: Phần 5 - Trừ từ một số nhỏ",
+                    content: "Hãy thực hành phép trừ với các số nhỏ.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 5) + 6; // 6-10
+                        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1 to num1-1
+                        const answer = (num1 - num2).toString();
+                        const question = `Tính: $${num1} - ${num2} = ?$`;
+                        const options = [answer, (parseInt(answer) + 1).toString(), (parseInt(answer) - 1).toString(), (parseInt(answer) + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                }
+            ],
+            multiplication: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Nhân: Phần 1 - Khái niệm cơ bản (nhóm 2)",
+                    content: "Phép nhân là cách tính nhanh khi bạn cộng nhiều lần cùng một số. Ví dụ: $2 \\times 3$ có nghĩa là 2 được lấy 3 lần ($2+2+2$).",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const num2 = Math.floor(Math.random() * 3) + 2; // 2-4
+                        return {
+                            question: `Tính: $${num1} \\times ${num2} = ?$`,
+                            answer: (num1 * num2).toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Nhân: Phần 2 - Nhân với số 0 và 1",
+                    content: "Khi nhân một số với 0, kết quả luôn là 0. Khi nhân một số với 1, kết quả là chính số đó.",
+                    generateQuestion: () => {
+                        const type = Math.random() < 0.5 ? 'zero' : 'one';
+                        let num = Math.floor(Math.random() * 9) + 1; // 1-9
+                        let question, answer, options;
+                        if (type === 'zero') {
+                            question = `Kết quả của $${num} \\times 0$ là bao nhiêu?`;
+                            answer = "0";
+                            options = ["0", num.toString(), (num + 1).toString(), (num * 2).toString()].sort(() => Math.random() - 0.5);
+                        } else {
+                            question = `Kết quả của $${num} \\times 1$ là bao nhiêu?`;
+                            answer = num.toString();
+                            options = [num.toString(), (num + 1).toString(), (num - 1).toString(), "0"].sort(() => Math.random() - 0.5);
+                        }
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Nhân: Phần 3 - Nhân trong phạm vi nhỏ",
+                    content: "Hãy thực hành các phép nhân đơn giản với các số nhỏ.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 4) + 2; // 2-5
+                        const num2 = Math.floor(Math.random() * 4) + 2; // 2-5
+                        return {
+                            question: `Tính: $${num1} \\times ${num2} = ?$`,
+                            answer: (num1 * num2).toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Nhân: Phần 4 - Bài toán có lời văn",
+                    content: "Giải bài toán sau.",
+                    generateQuestion: () => {
+                        const item = ["cái bánh", "quyển vở", "bông hoa", "cái kẹo"][Math.floor(Math.random() * 4)];
+                        const num1 = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const num2 = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const question = `Mỗi hộp có ${num1} ${item}. Mua ${num2} hộp thì có bao nhiêu ${item}?`;
+                        const answer = (num1 * num2).toString();
+                        const options = [answer, (num1 * num2 + 1).toString(), (num1 * num2 - 1).toString(), (num1 * num2 + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Nhân: Phần 5 - Bài tập tổng hợp",
+                    content: "Hãy ôn lại các phép nhân đã học.",
+                    generateQuestion: () => {
+                        const num1 = Math.floor(Math.random() * 4) + 2; // 2-5
+                        const num2 = Math.floor(Math.random() * 4) + 2; // 2-5
+                        const answer = (num1 * num2).toString();
+                        const question = `Tính: $${num1} \\times ${num2} = ?$`;
+                        const options = [answer, (parseInt(answer) + 1).toString(), (parseInt(answer) - 1).toString(), (parseInt(answer) + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                }
+            ],
+            division: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Chia: Phần 1 - Khái niệm cơ bản (chia đều)",
+                    content: "Phép chia là cách chia một số lượng thành các phần bằng nhau. Ví dụ: Có 6 cái kẹo chia đều cho 3 bạn, mỗi bạn được bao nhiêu cái kẹo?",
+                    generateQuestion: () => {
+                        const divisor = Math.floor(Math.random() * 2) + 2; // 2-3
+                        const quotient = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const dividend = divisor * quotient;
+                        return {
+                            question: `Có ${dividend} cái bánh, chia đều cho ${divisor} người. Mỗi người được bao nhiêu cái bánh? ($${dividend} \\div ${divisor} = ? $)`,
+                            answer: quotient.toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Chia: Phần 2 - Chia hết",
+                    content: "Khi một số chia hết cho số khác, phép chia sẽ không có số dư.",
+                    generateQuestion: () => {
+                        const divisor = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const quotient = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const dividend = divisor * quotient;
+                        const question = `Kết quả của $${dividend} \\div ${divisor}$ là bao nhiêu?`;
+                        const answer = quotient.toString();
+                        const options = [answer, (parseInt(answer) + 1).toString(), (parseInt(answer) - 1).toString(), (parseInt(answer) + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học phép Chia: Phần 3 - Bài tập cơ bản",
+                    content: "Hãy thực hành các phép chia đơn giản.",
+                    generateQuestion: () => {
+                        const divisor = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const quotient = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const dividend = divisor * quotient;
+                        return {
+                            question: `Tính: $${dividend} \\div ${divisor} = ?$`,
+                            answer: quotient.toString()
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Chia: Phần 4 - Bài toán có lời văn",
+                    content: "Giải bài toán sau.",
+                    generateQuestion: () => {
+                        const item = ["bông hoa", "cái bút", "quyển sách", "quả cam"][Math.floor(Math.random() * 4)];
+                        const divisor = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const quotient = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const dividend = divisor * quotient;
+                        const question = `Có ${dividend} ${item}, chia đều vào ${divisor} lọ. Mỗi lọ có bao nhiêu ${item}?`;
+                        const answer = quotient.toString();
+                        const options = [answer, (parseInt(answer) + 1).toString(), (parseInt(answer) - 1).toString(), (parseInt(answer) + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học phép Chia: Phần 5 - Bài tập tổng hợp",
+                    content: "Hãy ôn lại các phép chia đã học.",
+                    generateQuestion: () => {
+                        const divisor = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const quotient = Math.floor(Math.random() * 3) + 2; // 2-4
+                        const dividend = divisor * quotient;
+                        const answer = quotient.toString();
+                        const question = `Tính: $${dividend} \\div ${divisor} = ?$`;
+                        const options = [answer, (parseInt(answer) + 1).toString(), (parseInt(answer) - 1).toString(), (parseInt(answer) + 2).toString()].filter(val => parseInt(val) >= 0).sort(() => Math.random() - 0.5);
+                        return { question, answer, options, correctAnswer: answer };
+                    }
+                }
+            ]
+        };
+
+        // New: Music Lessons Data
+        const musicLessonsData = {
+            notes: [
+                {
+                    type: "multiple-choice",
+                    title: "Bài học Âm nhạc: Phần 1 - Các nốt nhạc cơ bản",
+                    content: "Hãy học về các nốt nhạc cơ bản: Đồ, Rê, Mi, Fa, Sol, La, Si.",
+                    generateQuestion: () => {
+                        const notes = ["Đồ", "Rê", "Mi", "Fa", "Sol", "La", "Si"];
+                        const correctNote = notes[Math.floor(Math.random() * notes.length)];
+                        const question = `Nốt nhạc nào sau đây là nốt ${correctNote}?`;
+                        const options = [...notes].sort(() => Math.random() - 0.5).slice(0, 4); // Pick 4 random options
+                        if (!options.includes(correctNote)) options[Math.floor(Math.random() * 4)] = correctNote; // Ensure correct option is there
+                        return { question, answer: correctNote, options: options, correctAnswer: correctNote };
+                    }
+                },
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học Âm nhạc: Phần 2 - Giá trị nốt nhạc",
+                    content: "Mỗi nốt nhạc có một giá trị thời gian khác nhau. Ví dụ: Nốt tròn có 4 phách.",
+                    generateQuestion: () => {
+                        const noteValues = [
+                            { name: "Nốt tròn", value: "4 phách" },
+                            { name: "Nốt trắng", value: "2 phách" },
+                            { name: "Nốt đen", value: "1 phách" }
+                        ];
+                        const randomNote = noteValues[Math.floor(Math.random() * noteValues.length)];
+                        return {
+                            question: `Nốt ${randomNote.name} có mấy phách?`,
+                            answer: randomNote.value
+                        };
+                    }
+                }
+            ],
+            instruments: [
+                {
+                    type: "multiple-choice",
+                    title: "Bài học Âm nhạc: Phần 1 - Nhạc cụ phổ biến",
+                    content: "Hãy tìm hiểu về các nhạc cụ phổ biến như piano, guitar, trống.",
+                    generateQuestion: () => {
+                        const instruments = ["Piano", "Guitar", "Trống", "Violin", "Sáo"];
+                        const correctInstrument = instruments[Math.floor(Math.random() * instruments.length)];
+                        const question = `Đâu là một nhạc cụ dây?`; // Example question
+                        const options = [...instruments].sort(() => Math.random() - 0.5).slice(0, 4);
+                        if (!options.includes(correctInstrument)) options[Math.floor(Math.random() * 4)] = correctInstrument;
+                        
+                        // Simple logic for correct answer based on instrument type
+                        let actualCorrectAnswer = "";
+                        if (question.includes("dây")) {
+                            if (correctInstrument === "Guitar" || correctInstrument === "Violin") {
+                                actualCorrectAnswer = correctInstrument;
+                            } else {
+                                // If the randomly picked instrument is not a string instrument, ensure one is in options and set it as correct
+                                if (!options.includes("Guitar")) options[0] = "Guitar";
+                                actualCorrectAnswer = "Guitar";
+                            }
+                        } else { // Default to the random one if no specific type question
+                            actualCorrectAnswer = correctInstrument;
+                        }
+
+                        return { question, answer: actualCorrectAnswer, options: options, correctAnswer: actualCorrectAnswer };
+                    }
+                }
+            ],
+            rhythm: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học Âm nhạc: Phần 1 - Nhịp điệu cơ bản",
+                    content: "Nhịp điệu là sự sắp xếp của các âm thanh và khoảng lặng theo thời gian.",
+                    generateQuestion: () => {
+                        const rhythms = ["1-2-3-4", "1-2-1-2", "1-and-2-and"];
+                        const randomRhythm = rhythms[Math.floor(Math.random() * rhythms.length)];
+                        return {
+                            question: `Điền vào chỗ trống để tạo nhịp điệu: '1-2-3-?'`,
+                            answer: "4"
+                        };
+                    }
+                }
+            ],
+            genres: [
+                {
+                    type: "multiple-choice",
+                    title: "Bài học Âm nhạc: Phần 1 - Thể loại âm nhạc",
+                    content: "Có nhiều thể loại âm nhạc khác nhau như Pop, Rock, Jazz.",
+                    generateQuestion: () => {
+                        const genres = ["Pop", "Rock", "Jazz", "Classical", "Hip Hop"];
+                        const correctGenre = genres[Math.floor(Math.random() * genres.length)];
+                        const question = `Thể loại âm nhạc nào thường có giai điệu sôi động và dễ nghe?`;
+                        const options = [...genres].sort(() => Math.random() - 0.5).slice(0, 4);
+                        if (!options.includes("Pop")) options[0] = "Pop"; // Ensure Pop is an option
+                        return { question, answer: "Pop", options: options, correctAnswer: "Pop" };
+                    }
+                }
+            ]
+        };
+
+        // New: English Lessons Data
+        const englishLessonsData = {
+            vocabulary: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học Tiếng Anh: Phần 1 - Từ vựng cơ bản (Động vật)",
+                    content: "Hãy học các từ vựng tiếng Anh về động vật.",
+                    generateQuestion: () => {
+                        const words = [
+                            { en: "cat", vi: "mèo" },
+                            { en: "dog", vi: "chó" },
+                            { en: "bird", vi: "chim" },
+                            { en: "fish", vi: "cá" }
+                        ];
+                        const randomWord = words[Math.floor(Math.random() * words.length)];
+                        return {
+                            question: `Từ tiếng Anh của '${randomWord.vi}' là gì?`,
+                            answer: randomWord.en
+                        };
+                    }
+                },
+                {
+                    type: "multiple-choice",
+                    title: "Bài học Tiếng Anh: Phần 2 - Từ vựng cơ bản (Màu sắc)",
+                    content: "Hãy học các từ vựng tiếng Anh về màu sắc.",
+                    generateQuestion: () => {
+                        const colors = [
+                            { en: "red", vi: "đỏ" },
+                            { en: "blue", vi: "xanh dương" },
+                            { en: "green", vi: "xanh lá" },
+                            { en: "yellow", vi: "vàng" }
+                        ];
+                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                        const question = `Màu '${randomColor.vi}' trong tiếng Anh là gì?`;
+                        const options = [...colors.map(c => c.en)].sort(() => Math.random() - 0.5).slice(0, 4);
+                        if (!options.includes(randomColor.en)) options[Math.floor(Math.random() * 4)] = randomColor.en;
+                        return { question, answer: randomColor.en, options: options, correctAnswer: randomColor.en };
+                    }
+                }
+            ],
+            greetings: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học Tiếng Anh: Phần 1 - Chào hỏi",
+                    content: "Học cách chào hỏi cơ bản trong tiếng Anh.",
+                    generateQuestion: () => {
+                        const greetings = [
+                            { en: "Hello", vi: "Xin chào" },
+                            { en: "Hi", vi: "Chào" },
+                            { en: "Good morning", vi: "Chào buổi sáng" }
+                        ];
+                        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+                        return {
+                            question: `Dịch câu '${randomGreeting.vi}' sang tiếng Anh:`,
+                            answer: randomGreeting.en
+                        };
+                    }
+                }
+            ],
+            sentences: [
+                {
+                    type: "multiple-choice",
+                    title: "Bài học Tiếng Anh: Phần 1 - Câu đơn giản",
+                    content: "Học cách tạo các câu đơn giản trong tiếng Anh.",
+                    generateQuestion: () => {
+                        const sentences = [
+                            { en: "I am happy.", vi: "Tôi vui." },
+                            { en: "You are smart.", vi: "Bạn thông minh." },
+                            { en: "She is a student.", vi: "Cô ấy là học sinh." }
+                        ];
+                        const randomSentence = sentences[Math.floor(Math.random() * sentences.length)];
+                        const question = `Dịch câu '${randomSentence.vi}' sang tiếng Anh:`;
+                        const options = [...sentences.map(s => s.en)].sort(() => Math.random() - 0.5).slice(0, 4);
+                        if (!options.includes(randomSentence.en)) options[Math.floor(Math.random() * 4)] = randomSentence.en;
+                        return { question, answer: randomSentence.en, options: options, correctAnswer: randomSentence.en };
+                    }
+                }
+            ],
+            animals: [
+                {
+                    type: "fill-in-the-blank",
+                    title: "Bài học Tiếng Anh: Phần 1 - Động vật",
+                    content: "Học các từ tiếng Anh về động vật.",
+                    generateQuestion: () => {
+                        const animals = [
+                            { en: "elephant", vi: "voi" },
+                            { en: "lion", vi: "sư tử" },
+                            { en: "tiger", vi: "hổ" },
+                            { en: "bear", vi: "gấu" }
+                        ];
+                        const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+                        return {
+                            question: `Điền từ còn thiếu: 'A big ${randomAnimal.en}'`,
+                            answer: randomAnimal.en
+                        };
+                    }
+                }
+            ]
+        };
+
+        // Consolidated lesson data by subject
+        const allLessonsData = {
+            math: mathLessonsData,
+            music: musicLessonsData,
+            english: englishLessonsData
+        };
+
+        // Function to show a specific screen
+        function showScreen(screenId, type = '') {
+            document.getElementById(currentScreen).classList.remove('active');
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+
+            // Reset code input and set purchase type when navigating to code entry screen
+            if (screenId === 'codeEntryScreen') {
+                document.getElementById('codeInput').value = '';
+                purchaseType = type;
+            } else if (screenId === 'leaderboardScreen') { // Call displayLeaderboard when going to leaderboard screen
+                displayLeaderboard();
+            } else if (screenId === 'profileScreen') { // Call displayProfile when going to profile screen
+                displayProfile();
+            } else if (screenId === 'shopScreen') { // Update shop button state
+                updateShopButtons();
+            }
+            updateBatteryDisplay(); // Update battery display when screen changes
+            updateTournamentUI(); // Update tournament UI when screen changes
+        }
+
+        // New: Function to show subject-specific screen
+        function showSubjectScreen(subject) {
+            currentSubject = subject;
+            showScreen(`${subject}SubjectScreen`);
+        }
+
+        // Function to append numbers to the code input
+        function appendCode(num) {
+            const codeInput = document.getElementById('codeInput');
+            if (codeInput.value.length < 3) { // Limit to 3 digits for the code
+                codeInput.value += num;
+            }
+        }
+
+        // Function to clear the code input
+        function clearCode() {
+            document.getElementById('codeInput').value = '';
+        }
+
+        // Function to submit the code
+        function submitCode() {
+            const codeInput = document.getElementById('codeInput').value;
+            if (codeInput === '999') {
+                if (purchaseType === 'buy10VND') {
+                    isPlusMember = true; // Set Plus status
+                    customAlert("Mua gói Plus thành công!");
+                } else if (purchaseType === 'recharge') {
+                    price = 1000;
+                    customAlert("Mã đúng! Số tiền đã được cập nhật.");
+                } else if (purchaseType === 'buyGems') {
+                    gems += 500;
+                    document.getElementById('gemCount').textContent = gems;
+                    customAlert("Mua 500 đá quý thành công!");
+                }
+                saveGameData(); // Save data after purchase
+                showScreen('mainScreen'); // Return to main screen
+            } else {
+                customAlert("Mã không đúng. Vui lòng thử lại.");
+            }
+            clearCode(); // Clear input after submission
+        }
+
+        // Function to display the current part of the lesson
+        function displayCurrentLessonPart(lessonData) {
+            document.getElementById('lessonTitle').textContent = lessonData.title;
+            document.getElementById('lessonContent').textContent = lessonData.content;
+
+            const questionContainer = document.getElementById('questionContainer');
+            const multipleChoiceContainer = document.getElementById('multipleChoiceContainer');
+            const questionText = document.getElementById('questionText');
+            const answerInput = document.getElementById('answerInput');
+            const checkAnswerButton = document.getElementById('checkAnswerButton');
+            const feedbackText = document.getElementById('feedbackText');
+            const mcQuestionText = document.getElementById('mcQuestionText');
+            const mcOptionsContainer = document.getElementById('mcOptionsContainer');
+            const mcFeedbackText = document.getElementById('mcFeedbackText');
+            const nextButton = document.getElementById('nextLessonPartButton');
+            const completeButton = document.getElementById('completeLessonButton');
+
+            // Reset feedback and input
+            answerInput.value = '';
+            feedbackText.textContent = '';
+            feedbackText.className = 'text-lg mt-2 font-semibold'; // Reset classes
+            mcFeedbackText.textContent = '';
+            mcFeedbackText.className = 'text-lg mt-2 font-semibold'; // Reset classes
+            mcOptionsContainer.innerHTML = ''; // Clear previous options
+
+            // Hide all question types initially
+            questionContainer.classList.add('hidden');
+            multipleChoiceContainer.classList.add('hidden');
+            nextButton.classList.add('hidden');
+            completeButton.classList.add('hidden');
+
+            isAnswerCorrect = false; // Reset answer status for new part
+
+            if (lessonData.generateQuestion) { // If question needs to be generated
+                const generated = lessonData.generateQuestion();
+                lessonData.currentQuestion = generated.question; // Store generated question
+                lessonData.currentAnswer = generated.answer; // Store generated answer
+                lessonData.currentOptions = generated.options; // Store generated options
+                lessonData.currentCorrectAnswer = generated.correctAnswer; // Store generated correct answer
+
+                if (lessonData.type === "fill-in-the-blank") {
+                    questionContainer.classList.remove('hidden');
+                    questionText.textContent = lessonData.currentQuestion;
+                    answerInput.disabled = false;
+                    checkAnswerButton.classList.remove('hidden');
+                } else if (lessonData.type === "multiple-choice") {
+                    multipleChoiceContainer.classList.remove('hidden');
+                    mcQuestionText.textContent = lessonData.currentQuestion;
+                    generated.options.forEach((option) => {
+                        const button = document.createElement('button');
+                        button.textContent = option;
+                        button.className = 'mc-option-button action-button w-full mt-2 bg-indigo-500 hover:bg-indigo-600';
+                        button.onclick = () => checkMultipleChoiceAnswer(option);
+                        mcOptionsContainer.appendChild(button);
+                    });
+                }
+            }
+
+            // If it's the last part, show complete button
+            if (currentLessonPartIndex === allLessonsData[currentSubject][currentOperation].length - 1) {
+                completeButton.classList.remove('hidden');
+            } else {
+                nextButton.classList.remove('hidden');
+            }
+            showScreen('lessonScreen'); // Ensure we are on the generic lesson screen
+        }
+
+        // Function to initiate a lesson (now takes subject and operation)
+        function showLesson(subject, operation) {
+            isReviewMode = false; // Not in review mode
+            if (!isPlusMember && batteryLevel <= 0) { // Only check battery if not a Plus member
+                customAlert("Pin đã hết! Vui lòng sạc đầy pin để tiếp tục học.");
+                return;
+            }
+            currentSubject = subject; // Set the current subject
+            currentOperation = operation;
+            currentLessonPartIndex = 0; // Start from the first part of the lesson
+            displayCurrentLessonPart(allLessonsData[currentSubject][currentOperation][currentLessonPartIndex]);
+        }
+
+        // Function to check the user's answer for fill-in-the-blank
+        function checkAnswer() {
+            const lessonPart = allLessonsData[currentSubject][currentOperation][currentLessonPartIndex];
+            const userAnswer = document.getElementById('answerInput').value.trim();
+            const feedbackText = document.getElementById('feedbackText');
+            const nextButton = document.getElementById('nextLessonPartButton');
+            const completeButton = document.getElementById('completeLessonButton');
+            const answerInput = document.getElementById('answerInput');
+
+            const correctAnswer = lessonPart.currentAnswer; // Use currentAnswer for generated questions
+
+            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                feedbackText.textContent = "Chính xác! Tuyệt vời!";
+                feedbackText.classList.remove('text-red-500');
+                feedbackText.classList.add('text-green-500');
+                isAnswerCorrect = true;
+                answerInput.disabled = true; // Disable input after correct answer
+                document.getElementById('checkAnswerButton').classList.add('hidden'); // Hide check button
+
+                // If it's the last part and answered correctly, show complete button
+                if (currentLessonPartIndex === allLessonsData[currentSubject][currentOperation].length - 1) {
+                    completeButton.classList.remove('hidden');
+                } else {
+                    nextButton.classList.remove('hidden');
+                }
+            } else {
+                feedbackText.textContent = "Chưa đúng. Vui lòng thử lại.";
+                feedbackText.classList.remove('text-green-500');
+                feedbackText.classList.add('text-red-500');
+                isAnswerCorrect = false;
+                answerInput.value = ''; // Clear input for re-entry
+                answerInput.disabled = false; // Ensure input is enabled
+            }
+        }
+
+        // Function to check the user's answer for multiple choice
+        function checkMultipleChoiceAnswer(selectedOption) {
+            const lessonPart = allLessonsData[currentSubject][currentOperation][currentLessonPartIndex];
+            const mcFeedbackText = document.getElementById('mcFeedbackText');
+            const nextButton = document.getElementById('nextLessonPartButton');
+            const completeButton = document.getElementById('completeLessonButton');
+            const mcOptions = document.getElementById('mcOptionsContainer').children;
+
+            const correctAnswer = lessonPart.currentCorrectAnswer; // Use currentCorrectAnswer for generated questions
+
+            // Disable all options after selection
+            for (let i = 0; i < mcOptions.length; i++) {
+                mcOptions[i].disabled = true;
+            }
+
+            if (selectedOption === correctAnswer) {
+                mcFeedbackText.textContent = "Chính xác! Tuyệt vời!";
+                mcFeedbackText.classList.remove('text-red-500');
+                mcFeedbackText.classList.add('text-green-500');
+                isAnswerCorrect = true;
+
+                // Highlight correct answer
+                for (let i = 0; i < mcOptions.length; i++) {
+                    if (mcOptions[i].textContent === selectedOption) {
+                        mcOptions[i].classList.add('bg-green-500');
+                        mcOptions[i].classList.remove('bg-indigo-500');
+                    }
+                }
+
+                // If it's the last part and answered correctly, show complete button
+                if (currentLessonPartIndex === allLessonsData[currentSubject][currentOperation].length - 1) {
+                    completeButton.classList.remove('hidden');
+                } else {
+                    nextButton.classList.remove('hidden');
+                }
+            } else {
+                mcFeedbackText.textContent = "Chưa đúng. Vui lòng thử lại.";
+                mcFeedbackText.classList.remove('text-green-500');
+                mcFeedbackText.classList.add('text-red-500');
+                isAnswerCorrect = false;
+
+                // Highlight incorrect answer and correct answer
+                for (let i = 0; i < mcOptions.length; i++) {
+                    if (mcOptions[i].textContent === selectedOption) {
+                        mcOptions[i].classList.add('bg-red-500');
+                        mcOptions[i].classList.remove('bg-indigo-500');
+                    }
+                    if (mcOptions[i].textContent === correctAnswer) {
+                        mcOptions[i].classList.add('bg-green-500');
+                        mcOptions[i].classList.remove('bg-indigo-500');
+                    }
+                }
+                // Re-enable options for retry if incorrect
+                setTimeout(() => { // Give a small delay for visual feedback before re-enabling
+                    for (let i = 0; i < mcOptions.length; i++) {
+                        mcOptions[i].disabled = false;
+                        mcOptions[i].classList.remove('bg-red-500', 'bg-green-500');
+                        mcOptions[i].classList.add('bg-indigo-500');
+                    }
+                    mcFeedbackText.textContent = ''; // Clear feedback after re-enabling
+                }, 1000); // 1 second delay
+            }
+        }
+
+        // Function to move to the next part of the current lesson
+        function nextLessonPart() {
+            const lessonPart = allLessonsData[currentSubject][currentOperation][currentLessonPartIndex];
+            if (isAnswerCorrect) { // Only proceed if answered correctly
+                if (currentLessonPartIndex < allLessonsData[currentSubject][currentOperation].length - 1) {
+                    currentLessonPartIndex++;
+                    displayCurrentLessonPart(allLessonsData[currentSubject][currentOperation][currentLessonPartIndex]);
+                }
+            } else {
+                customAlert("Vui lòng trả lời đúng câu hỏi trước khi chuyển sang phần tiếp theo.");
+            }
+        }
+
+        // Function to complete a lesson and award gems
+        function completeLesson() {
+            const lessonPart = allLessonsData[currentSubject][currentOperation][currentLessonPartIndex];
+            if (isAnswerCorrect) { // Ensure the last question is answered correctly before completing
+                let gemsEarned = 0;
+                if (isPlusMember) {
+                    gemsEarned = GEMS_PER_LESSON_PLUS; // Plus members get more gems
+                } else {
+                    gemsEarned = GEMS_PER_LESSON_NORMAL; // Normal members get standard gems
+                    if (!isReviewMode) { // Only count for daily lessons if not in review mode
+                        lessonsCompletedToday++; // Increment daily completed lessons for normal members
+                    }
+                }
+
+                if (isDoubleGemActive) { // Apply x2 bonus if active
+                    gemsEarned *= 2;
+                }
+
+                gems += gemsEarned;
+
+                // If tournament is active, add to tournament score
+                if (tournamentState.isActive) {
+                    tournamentState.userScore += gemsEarned;
+                }
+                
+                document.getElementById('gemCount').textContent = gems;
+                customAlert("Chúc mừng! Bạn đã hoàn thành bài học và nhận được " + gemsEarned + " đá quý!");
+                
+                saveGameData(); // Save data after completing lesson
+                showScreen('mainScreen');
+            } else {
+                customAlert("Vui lòng trả lời đúng câu hỏi cuối cùng trước khi hoàn thành bài học.");
+            }
+        }
+
+        // Function to recharge battery
+        function rechargeBattery() {
+            if (gems >= RECHARGE_BATTERY_COST) {
+                gems -= RECHARGE_BATTERY_COST;
+                batteryLevel = MAX_BATTERY; // Fill battery
+                lessonsCompletedToday = 0; // Reset daily lessons completed
+                document.getElementById('gemCount').textContent = gems;
+                customAlert("Pin đã được sạc đầy!");
+                saveGameData(); // Save data after recharging
+                updateBatteryDisplay(); // Update battery icon and text
+            } else {
+                customAlert("Bạn không đủ đá quý để sạc đầy pin. Cần " + RECHARGE_BATTERY_COST + " đá quý.");
+            }
+        }
+
+        // Function to buy x2 gems
+        function buyDoubleGems() {
+            if (isDoubleGemActive) {
+                customAlert("Bạn đã mua tính năng x2 Đá quý rồi!");
+                return;
+            }
+            if (gems >= DOUBLE_GEM_COST) {
+                gems -= DOUBLE_GEM_COST;
+                isDoubleGemActive = true;
+                document.getElementById('gemCount').textContent = gems;
+                customAlert("Bạn đã mua thành công x2 Đá quý! Đá quý của bạn sẽ được nhân đôi khi hoàn thành bài học.");
+                saveGameData();
+                updateShopButtons(); // Update button state
+                displayProfile(); // Update profile to show status
+            } else {
+                customAlert("Bạn không đủ đá quý để mua x2 Đá quý. Cần " + DOUBLE_GEM_COST + " đá quý.");
+            }
+        }
+
+        // Function to update shop buttons state
+        function updateShopButtons() {
+            const buyDoubleGemsButton = document.getElementById('buyDoubleGemsButton');
+            if (isDoubleGemActive) {
+                buyDoubleGemsButton.disabled = true;
+                buyDoubleGemsButton.textContent = "Đã mua x2 Đá quý";
+                buyDoubleGemsButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                buyDoubleGemsButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            } else {
+                buyDoubleGemsButton.disabled = false;
+                buyDoubleGemsButton.textContent = "Mua x2 Đá quý (10 đá quý)";
+                buyDoubleGemsButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                buyDoubleGemsButton.classList.add('bg-green-500', 'hover:bg-green-600');
+            }
+        }
+
+        // Function to update battery display (icon and text)
+        function updateBatteryDisplay() {
+            const batteryIcon = document.getElementById('batteryIcon');
+            const batteryStatusText = document.getElementById('batteryStatus');
+
+            if (isPlusMember) {
+                batteryStatusText.textContent = `Vô hạn`; // Changed to just "Vô hạn"
+                batteryIcon.className = 'fas fa-battery-full text-blue-500'; // Blue for unlimited
+            } else {
+                batteryStatusText.textContent = `${MAX_BATTERY - lessonsCompletedToday}/${MAX_BATTERY}`; // Simplified text
+
+                // Update battery icon based on level
+                if (batteryLevel === MAX_BATTERY) {
+                    batteryIcon.className = 'fas fa-battery-full text-green-500';
+                } else if (batteryLevel >= MAX_BATTERY / 2) {
+                    batteryIcon.className = 'fas fa-battery-half text-yellow-500';
+                } else if (batteryLevel > 0) {
+                    batteryIcon.className = 'fas fa-battery-quarter text-orange-500';
+                } else {
+                    batteryIcon.className = 'fas fa-battery-empty text-red-500';
+                }
+            }
+        }
+
+        // Function to get today's date in YYYY-MM-DD format
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Function to load game data from localStorage
+        function loadGameData() {
+            const savedGems = localStorage.getItem('gems');
+            const savedLessonsCompletedToday = localStorage.getItem('lessonsCompletedToday');
+            const savedLastLoginDate = localStorage.getItem('lastLoginDate');
+            const savedIsPlusMember = localStorage.getItem('isPlusMember');
+            const savedIsDoubleGemActive = localStorage.getItem('isDoubleGemActive'); // New
+            const savedTournamentState = localStorage.getItem('tournamentState');
+            const savedUserName = localStorage.getItem('userName');
+
+            if (savedGems !== null) {
+                gems = parseInt(savedGems);
+            }
+            if (savedIsPlusMember === 'true') {
+                isPlusMember = true;
+            }
+            if (savedIsDoubleGemActive === 'true') { // New
+                isDoubleGemActive = true;
+            }
+            if (savedTournamentState) {
+                tournamentState = JSON.parse(savedTournamentState);
+            }
+            if (savedUserName) {
+                userName = savedUserName;
+            }
+
+            const todayDate = getTodayDate();
+
+            // Check for daily lesson completion penalty and battery reset
+            if (savedLastLoginDate && savedLastLoginDate !== todayDate) {
+                if (!isPlusMember) {
+                    if (savedLessonsCompletedToday !== null && parseInt(savedLessonsCompletedToday) < DAILY_LESSONS_FOR_FULL_BATTERY_NEXT_DAY) { // Check if at least 1 lesson was completed
+                        gems = Math.max(0, gems - GEM_PENALTY_FOR_EMPTY_BATTERY);
+                        customAlert(`Bạn đã không hoàn thành ít nhất ${DAILY_LESSONS_FOR_FULL_BATTERY_NEXT_DAY} bài học hôm qua. Bị trừ ${GEM_PENALTY_FOR_EMPTY_BATTERY} đá quý.`);
+                    }
+                    // Check for "not ranking up" penalty at start of new day
+                    const lowestVirtualScore = virtualPlayers[virtualPlayers.length - 1].baseScore; // Score of the lowest virtual player
+                    if (gems < lowestVirtualScore) {
+                        gems = Math.max(0, gems - 50); // Deduct 50 gems
+                        customAlert(`Bạn cần cải thiện thứ hạng của mình! Bị trừ 50 đá quý.`);
+                    }
+                }
+                // Always reset for the new day
+                lessonsCompletedToday = 0; // Reset lessons completed for today
+                batteryLevel = MAX_BATTERY; // Battery always starts full on a new day
+                localStorage.removeItem('top1RewardGivenToday'); // Reset Top 1 reward flag for new day
+            } else {
+                // Same day or first time opening
+                if (savedLessonsCompletedToday !== null) {
+                    lessonsCompletedToday = parseInt(savedLessonsCompletedToday);
+                    batteryLevel = Math.max(0, MAX_BATTERY - lessonsCompletedToday);
+                }
+                if (savedLastLoginDate !== null) {
+                    lastLoginDate = savedLastLoginDate;
+                } else {
+                    lastLoginDate = todayDate;
+                }
+            }
+
+            document.getElementById('gemCount').textContent = gems;
+            updateBatteryDisplay();
+            saveGameData(); // Save updated state (especially for new day reset)
+
+            // Resume tournament if it was active
+            if (tournamentState.isActive) {
+                startTournamentTimer();
+            }
+            updateTournamentUI();
+            updateShopButtons(); // Update shop buttons on load
+
+            // Prompt for user name if not set
+            if (!userName || userName === "Người chơi") {
+                document.getElementById('nameInputModal').style.display = 'flex';
+            }
+        }
+
+        // Function to save game data to localStorage
+        function saveGameData() {
+            localStorage.setItem('gems', gems);
+            localStorage.setItem('lessonsCompletedToday', lessonsCompletedToday);
+            localStorage.setItem('lastLoginDate', lastLoginDate);
+            localStorage.setItem('isPlusMember', isPlusMember);
+            localStorage.setItem('isDoubleGemActive', isDoubleGemActive); // New
+            localStorage.setItem('tournamentState', JSON.stringify(tournamentState));
+            localStorage.setItem('userName', userName);
+        }
+
+        // Custom Alert Modal functions
+        function customAlert(message) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('customAlertModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('customAlertModal').style.display = 'none';
+        }
+
+        // Name input functions
+        function saveUserName() {
+            const inputName = document.getElementById('userNameInput').value.trim();
+            if (inputName) {
+                userName = inputName;
+                saveGameData();
+                document.getElementById('nameInputModal').style.display = 'none';
+                displayProfile(); // Update profile immediately
+            } else {
+                customAlert("Vui lòng nhập tên của bạn!");
+            }
+        }
+
+        // Leaderboard functions
+        function displayLeaderboard() {
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = ''; // Clear previous list
+
+            const allPlayers = [
+                { name: userName, score: gems, isPlayer: true },
+                ...virtualPlayers.map(p => ({ name: p.name, score: p.baseScore, isPlayer: false }))
+            ];
+
+            allPlayers.sort((a, b) => b.score - a.score); // Sort by score descending
+
+            allPlayers.forEach((player, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = `leaderboard-item ${player.isPlayer ? 'player' : ''}`;
+                listItem.innerHTML = `
+                    <span>${index + 1}. ${player.name}</span>
+                    <span>${player.score} <i class="fas fa-gem text-yellow-500"></i></span>
+                `;
+                leaderboardList.appendChild(listItem);
+            });
+        }
+
+        // Profile functions
+        function displayProfile() {
+            document.getElementById('profileUserName').textContent = userName;
+            document.getElementById('profileGemCount').textContent = gems;
+            document.getElementById('profilePlusStatus').textContent = isPlusMember ? 'Có' : 'Không';
+            document.getElementById('profileDoubleGemStatus').textContent = isDoubleGemActive ? 'Đã kích hoạt' : 'Chưa kích hoạt'; // New
+        }
+
+        // Tournament functions
+        function startTournament() {
+            if (tournamentState.isActive) {
+                customAlert("Giải đấu đang diễn ra!");
+                return;
+            }
+
+            if (!isPlusMember && batteryLevel <= 0) {
+                customAlert("Pin đã hết! Vui lòng sạc đầy pin để tham gia giải đấu.");
+                return;
+            }
+
+            tournamentState.isActive = true;
+            tournamentState.startTime = Date.now();
+            tournamentState.endTime = tournamentState.startTime + TOURNAMENT_DURATION_MS;
+            tournamentState.userScore = 0;
+            
+            // Initialize virtual player scores for the tournament
+            tournamentState.virtualPlayersScores = virtualPlayers.map(p => ({
+                name: p.name,
+                score: p.baseScore + Math.floor(Math.random() * 100) // Add some randomness to initial score
+            }));
+
+            saveGameData();
+            customAlert("Giải đấu đã bắt đầu! Hãy kiếm thật nhiều đá quý trong 15 phút tới!");
+            startTournamentTimer();
+            updateTournamentUI();
+        }
+
+        function startTournamentTimer() {
+            if (tournamentTimerInterval) {
+                clearInterval(tournamentTimerInterval);
+            }
+            tournamentTimerInterval = setInterval(updateTournamentTimer, 1000);
+            document.getElementById('tournamentTimer').classList.remove('hidden');
+        }
+
+        function updateTournamentTimer() {
+            const timeLeft = tournamentState.endTime - Date.now();
+            const timerDisplay = document.getElementById('tournamentTimer');
+
+            if (timeLeft <= 0) {
+                endTournament();
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / (60 * 1000));
+            const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+            timerDisplay.textContent = `Thời gian còn lại: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function endTournament() {
+            clearInterval(tournamentTimerInterval);
+            tournamentState.isActive = false;
+            document.getElementById('tournamentTimer').classList.add('hidden');
+            document.getElementById('startTournamentButton').disabled = false; // Re-enable start button
+
+            // Calculate final scores for virtual players
+            const timeElapsedInMinutes = TOURNAMENT_DURATION_MS / (60 * 1000);
+            tournamentState.virtualPlayersScores.forEach(vp => {
+                const originalPlayer = virtualPlayers.find(p => p.name === vp.name);
+                if (originalPlayer) {
+                    vp.score += Math.floor(originalPlayer.tournamentRate * timeElapsedInMinutes * (20 + Math.random() * 10)); // Simulate earning points
+                }
+            });
+
+            // Combine all scores for tournament results
+            const allTournamentScores = [
+                { name: userName, score: tournamentState.userScore, isPlayer: true },
+                ...tournamentState.virtualPlayersScores
+            ];
+
+            allTournamentScores.sort((a, b) => b.score - a.score); // Sort by score descending
+
+            // Display results in modal
+            const resultsList = document.getElementById('tournamentResultsList');
+            resultsList.innerHTML = '';
+            let playerRank = -1;
+            allTournamentScores.forEach((player, index) => {
+                if (player.isPlayer) {
+                    playerRank = index + 1;
+                }
+                const listItem = document.createElement('li');
+                listItem.className = `leaderboard-item ${player.isPlayer ? 'player' : ''}`;
+                listItem.innerHTML = `
+                    <span>${index + 1}. ${player.name}</span>
+                    <span>${player.score} <i class="fas fa-gem text-yellow-500"></i></span>
+                `;
+                resultsList.appendChild(listItem);
+            });
+
+            const rewardPenaltyText = document.getElementById('tournamentRewardPenaltyText');
+            if (playerRank === 1) {
+                gems += TOP_1_REWARD_GEMS;
+                rewardPenaltyText.textContent = `Chúc mừng! Bạn đứng Top 1 và nhận được ${TOP_1_REWARD_GEMS} đá quý!`;
+                rewardPenaltyText.classList.remove('text-red-500');
+                rewardPenaltyText.classList.add('text-green-500');
+            } else {
+                gems = Math.max(0, gems - TOURNAMENT_NON_WINNER_PENALTY);
+                rewardPenaltyText.textContent = `Bạn không đứng Top 1. Bị trừ ${TOURNAMENT_NON_WINNER_PENALTY} đá quý. Cố gắng lần sau nhé!`;
+                rewardPenaltyText.classList.remove('text-green-500');
+                rewardPenaltyText.classList.add('text-red-500');
+            }
+            document.getElementById('gemCount').textContent = gems; // Update gem display
+            saveGameData();
+            document.getElementById('tournamentResultsModal').style.display = 'flex';
+
+            // Reset tournament state for next game
+            tournamentState.userScore = 0;
+            tournamentState.virtualPlayersScores = [];
+            saveGameData(); // Save the reset state
+            updateTournamentUI();
+        }
+
+        function closeTournamentResultsModal() {
+            document.getElementById('tournamentResultsModal').style.display = 'none';
+            showScreen('mainScreen'); // Return to main screen after closing results
+        }
+
+        function updateTournamentUI() {
+            const startTournamentButton = document.getElementById('startTournamentButton');
+            const tournamentTimer = document.getElementById('tournamentTimer');
+
+            if (tournamentState.isActive) {
+                startTournamentButton.disabled = true;
+                tournamentTimer.classList.remove('hidden');
+            } else {
+                startTournamentButton.disabled = false;
+                tournamentTimer.classList.add('hidden');
+            }
+        }
+
+        // Review mode functions
+        function startReview() {
+            isReviewMode = true;
+            // Randomly pick a subject, operation, and lesson part
+            const subjects = Object.keys(allLessonsData);
+            const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+            const operations = Object.keys(allLessonsData[randomSubject]);
+            const randomOperation = operations[Math.floor(Math.random() * operations.length)];
+            const randomLessonPartIndex = Math.floor(Math.random() * allLessonsData[randomSubject][randomOperation].length);
+
+            currentSubject = randomSubject; // Set current subject for review
+            currentOperation = randomOperation;
+            currentLessonPartIndex = randomLessonPartIndex;
+
+            displayCurrentLessonPart(allLessonsData[currentSubject][currentOperation][currentLessonPartIndex]);
+            
+            // Hide next/complete buttons for review, or make them "Complete Review Part"
+            document.getElementById('nextLessonPartButton').classList.add('hidden');
+            document.getElementById('completeLessonButton').classList.remove('hidden'); // Show complete button for review part
+            document.getElementById('completeLessonButton').textContent = "Hoàn thành ôn tập";
+            document.getElementById('completeLessonButton').onclick = completeReviewLesson; // Assign specific function
+
+            showScreen('lessonScreen'); // Use generic lesson screen
+        }
+
+        function completeReviewLesson() {
+            const lessonPart = allLessonsData[currentSubject][currentOperation][currentLessonPartIndex];
+            if (isAnswerCorrect) { // Ensure the question is answered correctly before completing
+                let gemsEarned = GEMS_PER_LESSON_NORMAL; // Review always gives normal gems
+
+                if (isDoubleGemActive) { // Apply x2 bonus if active
+                    gemsEarned *= 2;
+                }
+
+                gems += gemsEarned;
+                document.getElementById('gemCount').textContent = gems;
+                customAlert("Chúc mừng! Bạn đã hoàn thành bài ôn tập và nhận được " + gemsEarned + " đá quý!");
+                saveGameData();
+                showScreen('mainScreen');
+                // Reset button text and function for next regular lesson
+                document.getElementById('completeLessonButton').textContent = "Hoàn thành bài học";
+                document.getElementById('completeLessonButton').onclick = completeLesson;
+            } else {
+                customAlert("Vui lòng trả lời đúng câu hỏi trước khi hoàn thành bài ôn tập.");
+            }
+        }
+
+
+        // Load game data when the page loads
+        window.onload = loadGameData;
+    </script>
+</body>
+</html>
